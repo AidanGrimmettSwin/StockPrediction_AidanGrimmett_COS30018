@@ -16,6 +16,10 @@
 # pip install pandas-datareader
 # pip install yfinance
 
+# Can't run without specifying output encoding
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
