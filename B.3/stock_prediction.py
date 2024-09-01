@@ -34,6 +34,7 @@ import yfinance as yf
 import os
 
 from load_process_data import load_and_process_data
+from plot_functions import plot_boxplot, plot_candlestick
 
 if not os.path.isdir("data"):
     os.mkdir("data")
@@ -245,13 +246,20 @@ predicted_prices = scaler.inverse_transform(predicted_prices)
 # 3) Show chart of next few days (predicted)
 #------------------------------------------------------------------------------
 
-plt.plot(actual_prices, color="black", label=f"Actual {COMPANY} Price")
-plt.plot(predicted_prices, color="green", label=f"Predicted {COMPANY} Price")
-plt.title(f"{COMPANY} Share Price")
-plt.xlabel("Time")
-plt.ylabel(f"{COMPANY} Share Price")
-plt.legend()
-plt.show()
+plot = input("Input: \n1 for standard graph\n2 for box plot\n3 for candlestick plot")
+if plot == '1':
+
+    plt.plot(actual_prices, color="black", label=f"Actual {COMPANY} Price")
+    plt.plot(predicted_prices, color="green", label=f"Predicted {COMPANY} Price")
+    plt.title(f"{COMPANY} Share Price")
+    plt.xlabel("Time")
+    plt.ylabel(f"{COMPANY} Share Price")
+    plt.legend()
+    plt.show()
+elif plot == '2':
+    plot_boxplot(data, window_size=90, title="90 Day window box plot")
+elif plot == '3':
+    plot_candlestick(data, str(COMPANY + " candlestick plot"), 30)
 
 #------------------------------------------------------------------------------
 # Predict next day
