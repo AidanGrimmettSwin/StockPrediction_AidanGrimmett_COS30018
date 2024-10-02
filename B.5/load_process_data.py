@@ -15,13 +15,14 @@ from tensorflow.keras.layers import Dense, Dropout, LSTM, InputLayer
 import yfinance as yf
 
 def load_and_process_data(
-    company,  
+    company,
+    multivariate, 
     scale_features, 
     save_data, 
     data_dir 
 ):
-    start_date = input("Please enter data start date (yyyy-mm-dd): ")     # Start date to read
-    end_date = input("Please enter data end date (yyyy-mm-dd): ")         # End date to read
+    start_date = "2020-01-01" #input("Please enter data start date (yyyy-mm-dd): ")     # Start date to read
+    end_date = "2023-01-01" #input("Please enter data end date (yyyy-mm-dd): ")         # End date to read
 
     # Step 1: Load Data
     # Either load or create a new file path for the data we want to use
@@ -72,7 +73,10 @@ def load_and_process_data(
     # Step 4: Scale the Features
     # Create a dictionary of the different scalers we will store 
     scalers = {}
-    features = ['Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume']  # Add desired features
+    if multivariate:
+        features = ['Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume']  # Add desired features
+    else:
+        features = ['Close']
     if scale_features:
         # Normalise all of the features to fit within a range of 0-1 (ie. the highest value will be 1 and the minimum value will be 0)
         for column in features:

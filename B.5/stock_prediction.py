@@ -46,36 +46,12 @@ if not os.path.isdir("data"):
 COMPANY = 'CBA.AX'
 
 #load data if it has been retrieved before, else download it and store it
-data, test_data, scalers  = load_and_process_data(COMPANY, True, True, '/Data')
-#------------------------------------------------------------------------------
-# Prepare Data
-## To do:
-# 1) Check if data has been prepared before. 
-# If so, load the saved data
-# If not, save the data into a directory
-# 2) Use a different price value eg. mid-point of Open & Close
-# 3) Change the Prediction days
-#------------------------------------------------------------------------------
+data, test_data, scalers  = load_and_process_data(COMPANY, True, True, True, '/Data')
+
+
 PRICE_VALUE = "Close"
 
-#scaler = MinMaxScaler(feature_range=(0, 1)) 
-# Note that, by default, feature_range=(0, 1). Thus, if you want a different 
-# feature_range (min,max) then you'll need to specify it here
-#scaled_data = scaler.fit_transform(data[PRICE_VALUE].values.reshape(-1, 1)) 
-# Flatten and normalise the data
-# First, we reshape a 1D array(n) to 2D array(n,1)
-# We have to do that because sklearn.preprocessing.fit_transform()
-# requires a 2D array
-# Here n == len(scaled_data)
-# Then, we scale the whole array to the range (0,1)
-# The parameter -1 allows (np.)reshape to figure out the array size n automatically 
-# values.reshape(-1, 1) 
-# https://stackoverflow.com/questions/18691084/what-does-1-mean-in-numpy-reshape'
-# When reshaping an array, the new shape must contain the same number of elements 
-# as the old shape, meaning the products of the two shapes' dimensions must be equal. 
-# When using a -1, the dimension corresponding to the -1 will be the product of 
-# the dimensions of the original array divided by the product of the dimensions 
-# given to reshape so as to maintain the same number of elements.
+
 
 # Number of days to look back to base the prediction
 PREDICTION_DAYS = 60 # Original
@@ -103,18 +79,12 @@ x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], x_train.shape
 
 #------------------------------------------------------------------------------
 # Build the Model
-## TO DO:
-# 1) Check if data has been built before. 
-# If so, load the saved data
-# If not, save the data into a directory
-# 2) Change the model to increase accuracy?
-#------------------------------------------------------------------------------
 
 input_shape=(x_train.shape[1], x_train.shape[2])
 
-model = MakeCustomModel('LSTM', input_shape, 2, 256, 0.3)
+model = MakeCustomModel('LSTM', input_shape, 2, 256, 0.2)
 
-model.fit(x_train, y_train, epochs=20, batch_size=32)
+model.fit(x_train, y_train, epochs=20, batch_size=64)
 
 # Scale the actual test prices correctly for plotting
 actual_prices = test_data[PRICE_VALUE].values.reshape(-1, 1)
@@ -161,11 +131,6 @@ predicted_prices = scalers['Close'].inverse_transform(predicted_prices)
 # we now need to reverse this transformation 
 #------------------------------------------------------------------------------
 # Plot the test predictions
-## To do:
-# 1) Candle stick charts
-# 2) Chart showing High & Lows of the day
-# 3) Show chart of next few days (predicted)
-#------------------------------------------------------------------------------
 
 plot = input("Input: \n1 for standard graph\n2 for box plot\n3 for candlestick plot")
 if plot == '1':
@@ -191,7 +156,7 @@ if (True):
     k = int(input("Enter the number of days you want to predict: "))
 
     # Make predictions for the next k days
-    predictions = predict_next_k_days(model, model_inputs, scalers['Close'], PREDICTION_DAYS, k)
+    predictions = predict_next_k_days(model, model_inputs, scalers, PREDICTION_DAYS, k)
 
     # Display the predictions
     print(f"Predicted prices for the next {k} days: {predictions}")

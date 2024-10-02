@@ -19,3 +19,8 @@ def predict_next_k_days(model, model_inputs, scaler, prediction_prev_days, k):
         real_data = np.append(real_data[0, 1:], prediction[0][0])
         
     return predictions
+
+# def multivariate_prediction(k_days: int, nfeatures: int = 6):
+#     test_ratio = 0.85
+
+#     result = load_data(COMPANY, DATA_SOURCE, TIME_START, TIME_END, k_days, test_ratio, multivariate=True) 
