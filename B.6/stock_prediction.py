@@ -37,6 +37,7 @@ from load_process_data import load_and_process_data
 from plot_functions import plot_boxplot, plot_candlestick
 from CreateCustomModel import MakeCustomModel
 from predict_k_days import predict_next_k_days
+from ensemble_modeling import ensemble_modeling
 
 if not os.path.isdir("data"):
     os.mkdir("data")
@@ -82,7 +83,7 @@ x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], x_train.shape
 
 input_shape=(x_train.shape[1], x_train.shape[2])
 
-model = MakeCustomModel('LSTM', input_shape, 2, 256, 0.2)
+model = MakeCustomModel('GRU', input_shape, 2, 256, 0.2)
 
 model.fit(x_train, y_train, epochs=20, batch_size=64)
 
@@ -92,7 +93,7 @@ actual_prices = scalers['Close'].inverse_transform(actual_prices)
 
 total_dataset = pd.concat((data[PRICE_VALUE], test_data[PRICE_VALUE]), axis=0)
 
-model_inputs = total_dataset[len(total_dataset) - len(test_data) - PREDICTION_DAYS:].values
+model_inputs = total_dataset[len(total_dataset) - (len(test_data) - PREDICTION_DAYS):].values
 # We need to do the above because to predict the closing price of the fisrt
 # PREDICTION_DAYS of the test period [TEST_START, TEST_END], we'll need the 
 # data from the training period
@@ -124,9 +125,10 @@ for x in range(PREDICTION_DAYS, len(test_data)):
 x_test = np.array(x_test)
 x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], x_test.shape[2]))
 # TO DO: Explain the above 5 lines
+predicted_prices = ensemble_modeling(data, test_data, scalers, model, PREDICTION_DAYS)
 
-predicted_prices = model.predict(x_test)
-predicted_prices = scalers['Close'].inverse_transform(predicted_prices)
+#predicted_prices = model.predict(x_test)
+#predicted_prices = scalers['Close'].inverse_transform(predicted_prices)
 # Clearly, as we transform our data into the normalized range (0,1),
 # we now need to reverse this transformation 
 #------------------------------------------------------------------------------
@@ -134,9 +136,13 @@ predicted_prices = scalers['Close'].inverse_transform(predicted_prices)
 
 plot = input("Input: \n1 for standard graph\n2 for box plot\n3 for candlestick plot")
 if plot == '1':
+    start_index = PREDICTION_DAYS
+    end_index = start_index + len(predicted_prices)
 
-    plt.plot(actual_prices, color="black", label=f"Actual {COMPANY} Price")
-    plt.plot(predicted_prices, color="green", label=f"Predicted {COMPANY} Price")
+    # plot actual prices for the corresponding period in the test data
+    plt.plot(test_data.index[start_index:end_index], actual_prices[start_index:end_index], color="black", label=f"Actual {COMPANY} Price")
+    plt.plot(test_data.index[start_index:end_index], predicted_prices, color="green", label=f"Predicted {COMPANY} Price")
+
     plt.title(f"{COMPANY} Share Price")
     plt.xlabel("Time")
     plt.ylabel(f"{COMPANY} Share Price")
@@ -156,7 +162,7 @@ if (True):
     k = int(input("Enter the number of days you want to predict: "))
 
     # Make predictions for the next k days
-    predictions = predict_next_k_days(model, model_inputs, scalers, PREDICTION_DAYS, k)
+    predictions = predict_next_k_days(model, model_inputs, scalers["Close"], PREDICTION_DAYS, k)
 
     # Display the predictions
     print(f"Predicted prices for the next {k} days: {predictions}")
